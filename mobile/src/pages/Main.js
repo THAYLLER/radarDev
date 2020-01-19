@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react'
 import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import MapView, {Marker, Callout} from 'react-native-maps';
-// Marker -> Marcação do Dev no mapa
 
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location'
 
 import api from '../services/api';
+import {connect, disconnect,subscribeToNewDevs} from '../services/socket';
 
 function Main({ navigation }){
   const [devs, setDevs] = useState([]);
@@ -20,7 +20,7 @@ function Main({ navigation }){
 
       if (granted) {
         const { coords } = await getCurrentPositionAsync({
-          enableHighAccuracy: true, // Buscando via GPS
+          enableHighAccuracy: true, 
         });
 
         const { latitude, longitude } = coords;
@@ -28,7 +28,6 @@ function Main({ navigation }){
         setCurrentRegion({
           latitude,
           longitude,
-          // Cálculos navais, zoom
           latitudeDelta: 0.01, 
           longitudeDelta: 0.01,
         })
@@ -38,8 +37,23 @@ function Main({ navigation }){
     loadInitialPosition()
   }, []);
 
+  useEffect(() => {
+    subscribeToNewDevs(dev => setDevs([...devs,dev]))
+  },[devs]);
 
-  
+  function setupWebsocket() {
+
+    disconnect();
+    const { latitude, longitude } = currentRegion;
+
+    connect(
+      latitude,
+      longitude,
+      techs
+    );
+    
+  }
+
   async function loadDevs(){
     const { latitude, longitude } = currentRegion;
 
@@ -52,17 +66,17 @@ function Main({ navigation }){
     });
 
     setDevs(response.data.dev)
-
+    setupWebsocket();
   }
 
   function handleRegionChanged(region) {
-    // console.log(region)
+    
     setCurrentRegion(region);
 
   }
 
   if(!currentRegion) {
-    // Só vai exibir o mapa, quando carregar a informação da localização do usuário
+    
     return null;
   }
 
