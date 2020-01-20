@@ -1,2 +1,5 @@
-# radarDev
-projeto realizado na semana oministack 10
+# RadarDev <br/>
+
+### This is a study project only and has no involvement with the Airbnb brand. :books:
+
+<img src="presentation.png" />
